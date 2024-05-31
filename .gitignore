@@ -1,1 +1,4 @@
 hack
+node_modules/
+.env.local
+.next/
