@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "./styles/globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,6 +10,8 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
+    <html>
+      <body>
     <div>
       <header>
         <h1>FinAdvisory</h1>
@@ -19,6 +21,8 @@ const Layout = ({ children }: LayoutProps) => {
         <p>© 2024 FinAdvisory</p>
       </footer>
     </div>
+    </body>
+    </html>
   );
 };
 
