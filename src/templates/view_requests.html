@@ -3,8 +3,25 @@
 {% block title %}View Requests - FinAdvisory{% endblock %}
 
 {% block content %}
-<div class="container mx-auto relative overflow-x-auto mt-5">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+<script>
+    function toggleButton() {
+        var dropdown = document.getElementById("statusDropdown");
+        var button = document.getElementById("updateButton");
+        if (dropdown.value === "Accepted" || dropdown.value === "Rejected") {
+            button.classList.remove("hidden");
+        } else {
+            button.classList.add("hidden");
+        }
+    }
+
+    function updateRequest(uuid) {
+        var dropdown = document.getElementById("statusDropdown");
+        var status = dropdown.value;
+        var url = "/update_request/" + uuid + "/" + status;
+        window.location.href = url;
+    }
+</script>
+<div class="container mx-auto px-4 py-10">
         <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">View Requests</h1>
         <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -79,19 +96,19 @@
                             </td>
                             <td class="px-6 py-4 font-medium whitespace-nowrap dark:text-white">
                                 {% if request.status == "Submitted" %}
-                                    <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                                    <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full">
                                         <i class="fas fa-clock mr-2"></i> Submitted
                                     </button>
                                 {% elif request.status == "Accepted" %}
-                                    <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                                    <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded-full">
                                         <i class="fas fa-check-circle mr-2"></i> Accepted
                                     </button>
                                 {% elif request.status == "Rejected" %}
-                                    <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                                    <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full">
                                         <i class="fas fa-times-circle mr-2"></i> Rejected
                                     </button>
                                 {% elif request.status == "Cancelled by User" %}
-                                    <button class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                                    <button class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-full">
                                         <i class="fas fa-ban mr-2"></i> Cancelled by User
                                     </button>
                                 {% endif %}
@@ -101,7 +118,7 @@
                                     <span class="text-red-500">Cancelled by User</span>
                                 {% else %}
                                     <div class="relative inline-block">
-                                        <select id="statusDropdown" name="status" class="block w-full py-2 pl-3 pr-10 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-gray-400 dark:focus:border-gray-400 sm:text-sm" onchange="toggleButton()">
+                                        <select id="statusDropdown" name="status" class="block w-full py-2 pl-3 pr-10 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-gray-400 dark:focus:border-gray-400 sm:text-sm py-1 px-3 rounded-full" onchange="toggleButton()">
                                             <option value="Accepted">Accept</option>
                                             <option value="Rejected">Reject</option>
                                         </select>
@@ -129,19 +146,19 @@
                             </td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {% if request.status == "Submitted" %}
-                                    <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                                    <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full">
                                         <i class="fas fa-clock mr-2"></i> Submitted
                                     </button>
                                 {% elif request.status == "Accepted" %}
-                                    <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                                    <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded-full">
                                         <i class="fas fa-check-circle mr-2"></i> Accepted
                                     </button>
                                 {% elif request.status == "Rejected" %}
-                                    <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                                    <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full">
                                         <i class="fas fa-times-circle mr-2"></i> Rejected
                                     </button>
                                 {% elif request.status == "Cancelled by User" %}
-                                    <button class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                                    <button class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-full">
                                         <i class="fas fa-ban mr-2"></i> Cancelled by User
                                     </button>
                                 {% endif %}
@@ -154,6 +171,5 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
 </div>
 {% endblock %}
