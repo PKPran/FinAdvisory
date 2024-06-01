@@ -103,8 +103,8 @@ class RequestLine(db.Model):
 
 class Message(db.Model):
     id = Column(Integer, primary_key=True)
-    sender_id = Column(Integer, ForeignKey('user.id'))
-    recipient_id = Column(Integer, ForeignKey('user.id'))
+    sender_id = Column(String, ForeignKey('user.uuid'))
+    recipient_id = Column(String, ForeignKey('user.uuid'))
     body = Column(String(500))
     timestamp = Column(DateTime, index=True, default=get_ist_time())
 

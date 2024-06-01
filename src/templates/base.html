@@ -31,6 +31,7 @@
                 <li><a href="#" class="hover:text-gray-300">About</a></li>
                 <li><a href="#" class="hover:text-gray-300">Contact</a></li>
                 {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('chat') }}" class="hover:text-gray-300">Chat</a></li>
                     <li>
                         <div x-data="{ open: false }" class="relative">
                             <div @click="open = !open" class="flex items-center cursor-pointer">
@@ -102,57 +103,12 @@
     </div>
 
 
-    <!-- Chat Module -->
-    <div id="chat-module">
-        <!-- Chat Window -->
-        <div id="chat-window">
-            <div id="chat-messages"></div>
-            <input type="text" id="message-input" placeholder="Type a message...">
-            <button id="send-button">Send</button>
-        </div>
-    </div>
     <!-- Footer -->
     <footer class="bg-gray-100 text-black py-4">
         <div class="container mx-auto">
             <p>&copy; 2024 FinAdvisory. All rights reserved.</p>
         </div>
     </footer>
-<!-- Chat Script -->
-{% block chat_script %}
-    <script>
-        var socket = io();
-
-        // Function to display received messages
-        function displayMessage(sender, message) {
-            $('#chat-messages').append($('<div>').text(sender + ': ' + message));
-            // Scroll to bottom
-            $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
-        }
-
-        // Send message when the Send button is clicked
-        $('#send-button').click(function() {
-            var message = $('#message-input').val();
-            var recipient_id = '{{ recipient_id }}'; // Replace with recipient ID
-            $.post('/save_message', { recipient_id: recipient_id, message: message })
-                .done(function(response) {
-                    console.log(response); // Message saved successfully
-                    // Emit the message to the recipient via socket.io
-                    socket.emit('private_message', { recipient: recipient_id, message: message });
-                    // Display the sent message
-                    displayMessage('{{ current_user.username }}', message);
-                })
-                .fail(function(error) {
-                    console.error('Error:', error);
-                });
-            $('#message-input').val('');
-        });
-
-        // Receive message from server and display it
-        socket.on('private_message', function(data) {
-            displayMessage(data.sender, data.message);
-        });
-    </script>
-{% endblock %}
 
 </body>
 </html>

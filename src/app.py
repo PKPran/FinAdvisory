@@ -7,7 +7,7 @@ from flask_login import (
     login_required,
     current_user,
 )
-from models import User, Transaction, Request, RequestLine
+from models import User, Transaction, Request, RequestLine, Message
 import os
 from database import db
 from sqlalchemy import inspect, or_
@@ -26,7 +26,6 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
-
 
 
 @app.route("/")
@@ -49,29 +48,19 @@ def list_database():
 def load_user(user_id):
     return User.query.get(user_id)
 
-@socketio.on('connect')
+
+@socketio.on("connect")
 @login_required
 def handle_connect():
-    emit('connected', {'msg': 'Connected'})
+    emit("connected", {"msg": "Connected"})
 
-@socketio.on('disconnect')
+
+@socketio.on("disconnect")
 @login_required
 def handle_disconnect():
     logout_user()
-    emit('disconnected', {'msg': 'Disconnected'})
+    emit("disconnected", {"msg": "Disconnected"})
 
-@socketio.on('private_message')
-@login_required
-def handle_private_message(data):
-    sender = current_user.username
-    recipient = data['recipient']
-    message = data['message']
-    # Save message to database
-    new_message = Message(sender=sender, recipient=recipient, message=message)
-    db.session.add(new_message)
-    db.session.commit()
-    # Emit the message to the recipient
-    emit('private_message', {'sender': sender, 'message': message}, room=recipient)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -166,7 +155,6 @@ def login():
         user_name = request.form["user_name"]
         password = request.form["password"]
         user = User.query.filter_by(user_name=user_name).first()
-        print("User:", user)
         if user:
             if user.check_password(password):
                 login_user(user)
@@ -321,5 +309,68 @@ def update_request(uuid, status):
     return redirect(url_for("view_requests"))
 
 
-if __name__ == '__main__':
+@app.route("/chat")
+@login_required
+def chat():
+    if current_user.is_ca:
+        request_approved = Request.query.filter_by(
+            ca_uuid=current_user.uuid, status="Accepted"
+        ).all()
+    else:
+        request_approved = Request.query.filter_by(
+            customer_uuid=current_user.uuid, status="Accepted"
+        ).all()
+    chat_users = []
+    for request in request_approved:
+        if current_user.is_ca:
+            user = User.query.filter_by(uuid=request.customer_uuid).first()
+        else:
+            user = User.query.filter_by(uuid=request.ca_uuid).first()
+        chat_users.append(user)
+    for chat_user in chat_users:
+        chat_user.messages = Message.query.filter(
+            or_(
+                Message.sender_id == current_user.uuid,
+                Message.recipient_id == current_user.uuid,
+            ),
+            or_(
+                Message.sender_id == chat_user.uuid,
+                Message.recipient_id == chat_user.uuid,
+            ),
+        ).all()
+    chat_users = sorted(
+        chat_users, key=lambda x: x.messages[-1].timestamp, reverse=True
+    )
+    return render_template("chat.html", chat_users=chat_users)
+
+
+@socketio.on("private_message")
+@login_required
+def handle_private_message(data):
+    sender = current_user.uuid
+    recipient = str(data["recipient"])
+    message = data["message"]
+    print("sender", sender)
+    print("recipient", recipient)
+    print("message", message)
+    new_message = Message(sender_id=sender, recipient_id=recipient, body=message)
+    print("new_message", new_message)
+    db.session.add(new_message)
+    db.session.commit()
+    emit("private_message", {"sender": sender, "message": message}, room=recipient)
+
+
+@socketio.on("message")
+def handle_message(data):
+    print("data", data)
+    sender = data["sender"]
+    recipient = data["recipient"]
+    body = data["body"]
+    message = Message(sender=sender, recipient=recipient, body=body)
+    db.session.add(message)
+    db.session.commit()
+    emit("message", data, broadcast=True)
+
+
+if __name__ == "__main__":
     socketio.run(app, port=5001, debug=True)
