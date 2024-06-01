@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Home - Your Website{% endblock %}
+{% block title %}Home - FinAdvisory{% endblock %}
 
 {% block content %}
+{% if current_user.is_authenticated %}
     <div class="container mx-auto">
-        <h1 class="text-3xl font-bold mb-4">Welcome, {{ current_user.username }}!</h1>
+        {%if current_user.is_ca %}
+            <h1 class="text-3xl font-bold mb-4">Welcome, CA {{ current_user.full_name() }}!</h1>
+        {% else %}
+            <h1 class="text-3xl font-bold mb-4">Welcome, {{ current_user.first_name }}!</h1>
+        {% endif %}
         <div class="bg-white shadow-md rounded-lg p-6">
             <p class="text-lg mb-4">Here's some information about you:</p>
             <ul class="list-disc ml-6">
@@ -15,4 +20,5 @@
             </ul>
         </div>
     </div>
+    {% endif %}
 {% endblock %}

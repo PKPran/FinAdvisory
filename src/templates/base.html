@@ -10,7 +10,16 @@
     <!-- Navbar -->
     <nav class="bg-gray-800 text-white py-4">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="/" class="text-xl font-bold">Your Logo</a>
+            <a href="/" class="flex items-center text-xl font-bold">
+                <img src="{{ url_for('static', filename='logo/logo.png') }}" alt="Logo" class="h-8 w-auto mr-2">
+                FinAdvisory
+            </a>
+            {% if current_user.is_authenticated %}
+                <ul class="flex space-x-6">
+                    <li><a href="{{ url_for('find_ca')}}" class="hover:text-gray-300">Find a CA</a></li>
+                    <li><a href="#" class="hover:text-gray-300">Online Consult</a></li>
+                </ul>
+            {% endif %}
             <ul class="flex space-x-4">
                 <li><a href="{{ url_for('index')}}" class="hover:text-gray-300">Home</a></li>
                 <li><a href="#" class="hover:text-gray-300">About</a></li>
@@ -69,7 +78,7 @@
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-4">
         <div class="container mx-auto">
-            <p>&copy; 2024 Your Company. All rights reserved.</p>
+            <p>&copy; 2024 FinAdvisory. All rights reserved.</p>
         </div>
     </footer>
 </body>
