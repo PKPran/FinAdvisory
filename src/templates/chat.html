@@ -5,9 +5,19 @@
 
 {% block content %}
 
-    <div class="flex flex-col h-full">
+<div class="flex flex-col h-full">
+    <!-- User selection dropdown -->
+    <label for="user-select" class="mb-2">Select a User:</label>
+    <select id="user-select" class="mb-4">
+        <option value="">Select a user</option>
         {% for user in chat_users %}
-        <div class="border-b border-gray-200 mb-4 pb-4">
+        <option value="{{ user.uuid }}">{{ user.full_name() }}</option>
+        {% endfor %}
+    </select>
+    <!-- Chat container -->
+    <div id="chat-container" class="overflow-y-auto flex-grow hidden">
+        {% for user in chat_users %}
+        <div id="chat-{{ user.uuid }}" class="border-b border-gray-200 mb-4 pb-4 hidden">
             <h2 class="text-lg font-semibold mb-2">{{ user.full_name() }}</h2>
             <div id="message-container-{{ user.uuid }}" class="overflow-y-auto flex flex-col space-y-2">
                 {% for message in user.messages %}
@@ -31,34 +41,75 @@
         </div>
         {% endfor %}
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js" integrity="sha512-N2Wl5WkPmrXfbFv8SClJV4W77jbcqR3y8x1/hJy15aDqOSBlrQJYZmAVTFgCUgr2fX9bUjR9H7XXxNXQe0Y4/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script type="text/javascript">
-        var socket = io();
-    
-        {% for user in chat_users %}
-        var messageForm = document.getElementById('message-form-{{ user.uuid }}');
-        var messageInput = document.getElementById('message-input-{{ user.uuid }}');
-        var messageContainer = document.getElementById('message-container-{{ user.uuid }}');
-    
-        messageForm.addEventListener('submit', function(event) {
+    <!-- Close chat button -->
+    <button id="close-chat" class="mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-500 hidden">Close Chat</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js" integrity="sha512-N2Wl5WkPmrXfbFv8SClJV4W77jbcqR3y8x1/hJy15aDqOSBlrQJYZmAVTFgCUgr2fX9bUjR9H7XXxNXQe0Y4/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script type="text/javascript">
+    var socket = io();
+
+    // Add event listener for user selection
+    document.getElementById('user-select').addEventListener('change', function(event) {
+        var selectedUserId = event.target.value;
+        // Hide all chat containers
+        document.querySelectorAll('[id^="chat-"]').forEach(function(chatContainer) {
+            chatContainer.classList.add('hidden');
+        });
+        // Hide close chat button if no user is selected
+        if (!selectedUserId) {
+            document.getElementById('chat-container').classList.add('hidden');
+            document.getElementById('close-chat').classList.add('hidden');
+        } else {
+            // Show the selected chat container
+            document.getElementById('chat-' + selectedUserId).classList.remove('hidden');
+            // Show the chat container
+            document.getElementById('chat-container').classList.remove('hidden');
+            // Show close chat button
+            document.getElementById('close-chat').classList.remove('hidden');
+        }
+    });
+
+    // Add event listener for close chat button
+    document.getElementById('close-chat').addEventListener('click', function() {
+        // Hide the chat container
+        document.getElementById('chat-container').classList.add('hidden');
+        // Hide close chat button
+        document.getElementById('close-chat').classList.add('hidden');
+        // Reset user selection dropdown
+        document.getElementById('user-select').value = "";
+    });
+
+    // Add event listener for message form submission
+    document.querySelectorAll('[id^="message-form-"]').forEach(function(form) {
+        form.addEventListener('submit', function(event) {
             event.preventDefault();
+            var messageInput = form.querySelector('input[type="text"]');
             var message = messageInput.value.trim();
             if (message !== '') {
+                // Emit the message to the server
                 socket.emit('private_message', {
-                    recipient: '{{ user.uuid }}',
+                    recipient: form.getAttribute('id').split('-')[2], // Extract recipient ID from form ID
                     message: message
                 });
                 messageInput.value = '';
             }
         });
-        socket.on('private_message', function (data) {
-            var messageContainer = document.getElementById('message-container');
-            var messageElement = document.createElement('div');
-            messageElement.textContent = data.sender + ': ' + data.message;
-            messageContainer.appendChild(messageElement);
-        });
-    
-        {% endfor %}
-    </script>
-{% endblock %}
+    });
 
+    // Add event listener to handle incoming messages from the server
+    socket.on('private_message', function(data) {
+        var messageContainer = document.getElementById('message-container-' + data.sender);
+        var messageElement = document.createElement('div');
+        messageElement.textContent = data.sender + ': ' + data.message;
+        if (data.sender === '{{ current_user.uuid }}') {
+            messageElement.classList.add('flex', 'items-start', 'justify-end');
+            messageElement.innerHTML = '<div class="bg-blue-500 text-white rounded-lg p-2"><span>' + data.message + '</span></div>';
+        } else {
+            messageElement.classList.add('flex', 'items-start');
+            messageElement.innerHTML = '<div class="bg-gray-200 rounded-lg p-2"><span class="text-gray-700">' + data.message + '</span></div>';
+        }
+        messageContainer.appendChild(messageElement);
+    });
+</script>
+{% endblock %}
