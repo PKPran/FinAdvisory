@@ -1,22 +1,32 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_login import (
+    LoginManager,
+    login_user,
+    logout_user,
+    login_required,
+    current_user,
+)
 from models import User, Transaction, Request, RequestLine
 import os
 from database import db
 from sqlalchemy import inspect, or_
 from werkzeug.security import generate_password_hash
+import datetime
+from utils import get_ist_time
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///finadv.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
+socketio = SocketIO(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
-login_manager = LoginManager(app)
-login_manager.login_view = "login"
+
 
 
 @app.route("/")
@@ -25,13 +35,9 @@ def index():
 
 
 @app.route("/list_database")
-@login_required
 def list_database():
-    # Get a list of all table names
     inspector = inspect(db.engine)
     table_names = inspector.get_table_names()
-
-    # Fetch all data from each table
     table_data = {}
     for table_name in table_names:
         table = db.metadata.tables[table_name]
@@ -43,6 +49,29 @@ def list_database():
 def load_user(user_id):
     return User.query.get(user_id)
 
+@socketio.on('connect')
+@login_required
+def handle_connect():
+    emit('connected', {'msg': 'Connected'})
+
+@socketio.on('disconnect')
+@login_required
+def handle_disconnect():
+    logout_user()
+    emit('disconnected', {'msg': 'Disconnected'})
+
+@socketio.on('private_message')
+@login_required
+def handle_private_message(data):
+    sender = current_user.username
+    recipient = data['recipient']
+    message = data['message']
+    # Save message to database
+    new_message = Message(sender=sender, recipient=recipient, message=message)
+    db.session.add(new_message)
+    db.session.commit()
+    # Emit the message to the recipient
+    emit('private_message', {'sender': sender, 'message': message}, room=recipient)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -63,8 +92,6 @@ def register():
             flash("Email already exists. Please use a different one.", "error")
             return redirect(url_for("register"))
         password_hash = generate_password_hash(password)
-
-        # Create a new user object
         new_user = User(
             user_name=user_name,
             password_hash=password_hash,
@@ -169,6 +196,104 @@ def find_ca():
     return render_template("find_ca.html", ca_list=ca_list)
 
 
+@app.route("/book_ca/<uuid:ca_uuid>", methods=["GET", "POST"])
+@login_required
+def book_ca(ca_uuid):
+    print("CA UUID:", ca_uuid)
+    ca = User.query.filter_by(uuid=str(ca_uuid)).first()
+    print("CA:", ca)
+    if request.method == "POST":
+        description = request.form["description"]
+        new_request_line = RequestLine(
+            customer_uuid=current_user.uuid,
+            ca_uuid=str(ca_uuid),
+            date=get_ist_time(),
+            party_name=current_user.full_name(),
+            status="Submitted",
+            description=description,
+        )
+        db.session.add(new_request_line)
+        new_request = Request(
+            customer_uuid=current_user.uuid,
+            ca_uuid=str(ca_uuid),
+            date=get_ist_time(),
+            party_name=current_user.full_name(),
+            status="Submitted",
+            description=description,
+        )
+        db.session.add(new_request)
+        db.session.commit()
+        flash("Request sent successfully.", "success")
+        return redirect(url_for("index"))
+    return render_template("book_ca.html", ca=ca)
+
+
+@app.route("/view_profile/<uuid:uuid>", methods=["GET", "POST"])
+@login_required
+def view_profile(uuid):
+    user = User.query.filter_by(uuid=str(uuid)).first()
+    return render_template("view_profile.html", user=user)
+
+
+@app.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
+    if request.method == "POST":
+        user = User.query.filter_by(uuid=current_user.uuid).first()
+        user.first_name = request.form["first_name"]
+        user.middle_name = request.form["middle_name"]
+        user.last_name = request.form["last_name"]
+        user.email = request.form["email"]
+        user.phone_number = request.form["phone_number"]
+        db.session.commit()
+        flash("Profile updated successfully.", "success")
+        return redirect(url_for("index"))
+    return render_template("settings.html")
+
+
+@app.route("/view_requests", methods=["GET", "POST"])
+@login_required
+def view_requests():
+    request_data = []
+    if current_user.is_ca:
+        requests = Request.query.filter_by(ca_uuid=current_user.uuid).all()
+        for request in requests:
+            customer = User.query.filter_by(uuid=request.customer_uuid).first()
+            request_data.append(
+                {
+                    "request": request,
+                    "customer_name": customer.full_name(),
+                    "amount": current_user.base_fee,
+                    "status": request.status,
+                    "email": customer.email,
+                }
+            )
+    else:
+        requests = Request.query.filter_by(customer_uuid=current_user.uuid).all()
+        for request in requests:
+            ca = User.query.filter_by(uuid=request.ca_uuid).first()
+            request_data.append(
+                {
+                    "request": request,
+                    "ca_name": ca.full_name(),
+                    "amount": ca.base_fee,
+                    "status": request.status,
+                    "email": ca.email,
+                }
+            )
+    return render_template("view_requests.html", requests=request_data)
+
+
+@app.route("/cancel_request/<uuid:uuid>", methods=["GET", "POST"])
+@login_required
+def cancel_request(uuid):
+    request = Request.query.filter_by(uuid=str(uuid)).first()
+    request.status = "Cancelled by User"
+    db.session.commit()
+    flash("Request cancelled successfully.", "success")
+    return redirect(url_for("view_requests"))
+
+
 @app.route("/logout")
 @login_required
 def logout():
@@ -177,5 +302,24 @@ def logout():
     return redirect(url_for("index"))
 
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+@app.route("/update_request/<string:uuid>/<string:status>", methods=["GET", "POST"])
+@login_required
+def update_request(uuid, status):
+    request = Request.query.filter_by(uuid=str(uuid)).first()
+    request.status = status
+    new_request_line = RequestLine(
+        customer_uuid=request.customer_uuid,
+        ca_uuid=request.ca_uuid,
+        date=get_ist_time(),
+        party_name=current_user.full_name(),
+        status=status,
+        description=request.description,
+    )
+    db.session.add(new_request_line)
+    db.session.commit()
+    flash("Request updated successfully.", "success")
+    return redirect(url_for("view_requests"))
+
+
+if __name__ == '__main__':
+    socketio.run(app, port=5001, debug=True)

@@ -1,4 +1,3 @@
-import datetime
 from sqlalchemy import (
     Column,
     Enum,
@@ -9,23 +8,20 @@ from sqlalchemy import (
     Float,
     Boolean,
 )
-from sqlalchemy.ext.mutable import MutableDict
-from sqlalchemy import event
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
-from uuid import uuid4
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import db
-from sqlalchemy.dialects.postgresql import JSONB
-import uuid
+from utils import generate_uuid, get_ist_time
 
 class User(UserMixin, db.Model):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    uuid = Column(String(80), unique=True, nullable=False, default=str(uuid4()))
-    created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, onupdate=datetime.datetime.utcnow, default=datetime.datetime.utcnow)
+    uuid = Column(String(80), unique=True, nullable=False, default=generate_uuid())
+    created_at = Column(DateTime, nullable=False, default=get_ist_time())
+    updated_at = Column(
+        DateTime, nullable=False, onupdate=get_ist_time(), default=get_ist_time()
+    )
     first_name = Column(String(80), nullable=False)
     middle_name = Column(String(80))
     last_name = Column(String(80), nullable=False)
@@ -40,6 +36,8 @@ class User(UserMixin, db.Model):
     ifsc = Column(String(80), nullable=True)
     transactions = relationship("Transaction", backref="user")
     requests = relationship("Request", backref="user")
+    sent_messages = relationship('Message', backref='sender', lazy='dynamic', foreign_keys='Message.sender_id')
+    received_messages = relationship('Message', backref='recipient', lazy='dynamic', foreign_keys='Message.recipient_id')
 
     def full_name(self):
         return f"{self.first_name} {self.middle_name} {self.last_name}"
@@ -53,15 +51,17 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f"<User(username='{self.user_name}')>"
 
+
 class Transaction(db.Model):
     __tablename__ = "transaction"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    uuid = Column(String(80), unique=True, nullable=False, default=str(uuid4()))
-    created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, onupdate=datetime.datetime.utcnow)
+    uuid = Column(String(80), unique=True, nullable=False, default=generate_uuid())
+    created_at = Column(DateTime, nullable=False, default=get_ist_time())
+    updated_at = Column(DateTime, nullable=False, onupdate=get_ist_time())
     amount = Column(Float, nullable=False)
     bank_account = Column(String(80))
-    user_id = Column(Integer, ForeignKey("user.uuid"))
+    customer_uuid = Column(Integer, ForeignKey("user.uuid"))
+    ca_uuid = Column(String(80))
     request_id = Column(Integer, ForeignKey("request.uuid"))
     date = Column(DateTime, nullable=False)
 
@@ -69,31 +69,44 @@ class Transaction(db.Model):
 class Request(db.Model):
     __tablename__ = "request"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    uuid = Column(String(80), unique=True, nullable=False, default=str(uuid4()))
-    created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, onupdate=datetime.datetime.utcnow)
-    customer_id = Column(Integer, ForeignKey("user.uuid"))
+    uuid = Column(String(80), unique=True, nullable=False, default=generate_uuid())
+    created_at = Column(DateTime, nullable=False, default=get_ist_time())
+    updated_at = Column(DateTime, nullable=False, onupdate=get_ist_time(), default=get_ist_time())
+    customer_uuid = Column(Integer, ForeignKey("user.uuid"))
+    ca_uuid = Column(String(80))
     date = Column(DateTime, nullable=False)
+    description = Column(String(255))
     request_lines = relationship("RequestLine", backref="request")
     party_name = Column(String(80))
-
-    @property
-    def current_status(self):  # Renamed the property
-        if self.request_lines:
-            return max(self.request_lines, key=lambda line: line.date).status
-        return None
+    status = Column(
+        Enum("Submitted", "Accepted", "Rejected", "Cancelled by User", name="status"), default="Submitted"
+    )
 
 
 class RequestLine(db.Model):
     __tablename__ = "request_line"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    uuid = Column(String(80), unique=True, nullable=False, default=str(uuid4()))
-    created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, onupdate=datetime.datetime.utcnow)
-    customer_id = Column(Integer, ForeignKey("user.uuid"))
-    party = Column(String(80))
+    uuid = Column(String(80), unique=True, nullable=False, default=generate_uuid())
+    created_at = Column(DateTime, nullable=False, default=get_ist_time())
+    updated_at = Column(
+        DateTime, nullable=False, onupdate=get_ist_time(), default=get_ist_time()
+    )
+    customer_uuid = Column(Integer, ForeignKey("user.uuid"))
+    ca_uuid = Column(String(80))
+    party_name = Column(String(80))
     request_id = Column(Integer, ForeignKey("request.uuid"))
     date = Column(DateTime, nullable=False)
+    description = Column(String(255))
     status = Column(
-        Enum("Submitted", "Accepted", "Rejected", name="status"), default="Submitted"
+        Enum("Submitted", "Accepted", "Rejected", "Cancelled by User", name="status"), default="Submitted"
     )
+
+class Message(db.Model):
+    id = Column(Integer, primary_key=True)
+    sender_id = Column(Integer, ForeignKey('user.id'))
+    recipient_id = Column(Integer, ForeignKey('user.id'))
+    body = Column(String(500))
+    timestamp = Column(DateTime, index=True, default=get_ist_time())
+
+    def __repr__(self):
+        return f'<Message {self.body}>'

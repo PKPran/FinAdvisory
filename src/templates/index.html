@@ -4,7 +4,7 @@
 
 {% block content %}
 {% if current_user.is_authenticated %}
-    <div class="container mx-auto">
+    <div class="container mx-auto mt-12">
         {%if current_user.is_ca %}
             <h1 class="text-3xl font-bold mb-4">Welcome, CA {{ current_user.full_name() }}!</h1>
         {% else %}

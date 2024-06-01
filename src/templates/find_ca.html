@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Home - FinAdvisory{% endblock %}
+{% block title %}Find CA - FinAdvisory{% endblock %}
 {% block content %}
 <div class="container mx-auto px-4 py-10">
     <h1 class="text-3xl font-bold mb-6">Find CA</h1>
@@ -23,12 +23,51 @@
     </form>
 
     {% if ca_list %}
-    <h2 class="text-xl font-bold mt-8">CA List</h2>
-    <ul class="list-disc list-inside">
-        {% for ca in ca_list %}
-        <li>{{ ca.full_name() }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+    <div class="relative overflow-x-auto mt-5">
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        First Name
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Last Name
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Email
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Base Fee / Session
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Book Now
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ca in ca_list %}
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                        {{ ca.first_name }}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                        {{ ca.last_name }}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                        {{ ca.email }}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                        ${{ ca.base_fee }}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                        <a href="{{ url_for('book_ca', ca_uuid=ca.uuid) }}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Book Now</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
 </div>
 {% endblock %}

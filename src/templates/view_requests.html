@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}View Requests - FinAdvisory{% endblock %}
+{% block content %}
+<script>
+    function toggleButton() {
+        var dropdown = document.getElementById("statusDropdown");
+        var button = document.getElementById("updateButton");
+        if (dropdown.value === "Accepted" || dropdown.value === "Rejected") {
+            button.classList.remove("hidden");
+        } else {
+            button.classList.add("hidden");
+        }
+    }
+
+    function updateRequest(uuid) {
+        var dropdown = document.getElementById("statusDropdown");
+        var status = dropdown.value;
+        var url = "/update_request/" + uuid + "/" + status;
+        window.location.href = url;
+    }
+</script>
+<div class="relative overflow-x-auto mt-5">
+    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            {% if current_user.is_ca %}
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        Customer Name
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Last Updated
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Email
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Description
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Base Fee / Session
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Status
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Action
+                    </th>
+                </tr>
+            {% else %}
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        Chartered Accountant
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Last Updated
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Email
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Description
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Base Fee / Session
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Status
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Action
+                    </th>
+                </tr>
+            {% endif %}
+        </thead>
+        <tbody>
+            {% for request in requests %}
+                {% if current_user.is_ca %}
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ request.customer_name }}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ request.request.updated_at.strftime('%d %b, %Y')}}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ request.email }}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ request.request.description }}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            ${{ request.amount }}
+                        </td>
+                        <td class="px-6 py-4 font-medium whitespace-nowrap dark:text-white">
+                            {% if request.status == "Submitted" %}
+                                <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-clock mr-2"></i> Submitted
+                                </button>
+                            {% elif request.status == "Accepted" %}
+                                <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-check-circle mr-2"></i> Accepted
+                                </button>
+                            {% elif request.status == "Rejected" %}
+                                <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-times-circle mr-2"></i> Rejected
+                                </button>
+                            {% elif request.status == "Cancelled by User" %}
+                                <button class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-ban mr-2"></i> Cancelled by User
+                                </button>
+                            {% endif %}
+                        </td>                        
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {% if request.status == "Cancelled by User" %}
+                                <span class="text-red-500">Cancelled by User</span>
+                            {% else %}
+                                <div class="relative inline-block text-left">
+                                    <select id="statusDropdown" name="status" class="block w-full py-2 pl-3 pr-10 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-gray-400 dark:focus:border-gray-400 sm:text-sm" onchange="toggleButton()">
+                                        <option value="Accepted">Accept</option>
+                                        <option value="Rejected">Reject</option>
+                                    </select>
+                                    <button id="updateButton" class="hidden mt-2 ml-2 py-2 px-4 bg-blue-500 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" onclick="updateRequest('{{request.request.uuid}}')">Update</button>
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ request.ca_name }}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ request.request.updated_at.strftime('%d %b, %Y, %H:%M %p')}}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ request.email }}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ request.request.description }}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            ${{ request.amount }}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {% if request.status == "Submitted" %}
+                                <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-clock mr-2"></i> Submitted
+                                </button>
+                            {% elif request.status == "Accepted" %}
+                                <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-check-circle mr-2"></i> Accepted
+                                </button>
+                            {% elif request.status == "Rejected" %}
+                                <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-times-circle mr-2"></i> Rejected
+                                </button>
+                            {% elif request.status == "Cancelled by User" %}
+                                <button class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-ban mr-2"></i> Cancelled by User
+                                </button>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            <a href="{{url_for('cancel_request', uuid=request.request.uuid)}}" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"><i class="fa-solid fa-xmark mr-2"></i>Cancel</a>
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
