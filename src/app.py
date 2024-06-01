@@ -371,6 +371,22 @@ def handle_message(data):
     db.session.commit()
     emit("message", data, broadcast=True)
 
+@app.route("/contact_us", methods=["GET", "POST"])
+def contact_us():
+    if request.method == "POST":
+        name = request.form["name"]
+        email = request.form["email"]
+        message = request.form["message"]
+        new_message = Message(
+            sender_id="Contact Us",
+            recipient_id="Admin",
+            body=f"Name: {name}\nEmail: {email}\nMessage: {message}",
+        )
+        db.session.add(new_message)
+        db.session.commit()
+        flash("Message sent successfully.", "success")
+        return redirect(url_for("index"))
+    return render_template("contact_us.html")
 
 if __name__ == "__main__":
     socketio.run(app, port=5001, debug=True)
