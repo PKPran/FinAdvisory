@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Home - Your Website{% endblock %}
+{% block content %}
+<div class="container mx-auto py-8">
+    <h1 class="text-3xl font-bold mb-4">Database Tables</h1>
+
+    {% for table_name, data in table_data.items() %}
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold mb-4">{{ table_name }}</h2>
+        {% if data %}
+            <div class="-mx-4 sm:-mx-8 px-4 sm:px-8 py-4 overflow-x-auto">
+                <div class="inline-block min-w-full shadow rounded-lg overflow-hidden">
+                    <table class="min-w-full leading-normal">
+                        <thead>
+                            <tr>
+                                {% for column_name in table_data[0] %}
+                                    <th>{{ column_name }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in data %}
+                            <tr>
+                                {% for column in row %}
+                                <td
+                                    class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ column }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <p>No data available.</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+</div>
+{% endblock %}

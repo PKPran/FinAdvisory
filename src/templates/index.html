@@ -3,6 +3,16 @@
 {% block title %}Home - Your Website{% endblock %}
 
 {% block content %}
-    <h1 class="text-3xl font-bold">Welcome to Your Website</h1>
-    <p>This is the homepage content.</p>
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold mb-4">Welcome, {{ current_user.username }}!</h1>
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <p class="text-lg mb-4">Here's some information about you:</p>
+            <ul class="list-disc ml-6">
+                <li class="mb-2"><span class="font-bold">First Name:</span> {{ current_user.first_name }}</li>
+                <li class="mb-2"><span class="font-bold">Last Name:</span> {{ current_user.last_name }}</li>
+                <li class="mb-2"><span class="font-bold">Email:</span> {{ current_user.email }}</li>
+                <li class="mb-2"><span class="font-bold">Phone Number:</span> {{ current_user.phone_number }}</li>
+            </ul>
+        </div>
+    </div>
 {% endblock %}
