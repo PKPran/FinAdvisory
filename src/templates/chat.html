@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 
 {% block title %}Chat{% endblock %}
@@ -6,7 +5,7 @@
 {% block content %}
 <div class="container mx-auto flex flex-col h-full">
     <label for="user-select" class="mb-2">Select a User:</label>
-    <select id="user-select" class="mb-4">
+    <select id="user-select" class="mb-4 border border-gray-300 rounded-md p-2">
         <option value="">Select a user</option>
         {% for user in chat_users %}
         <option value="{{ user.uuid }}">{{ user.full_name() }}</option>
@@ -38,8 +37,13 @@
         </div>
         {% endfor %}
     </div>
-    <button id="close-chat" class="mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-500 hidden">Close Chat</button>
+    <button id="close-chat" class="mt-2 mb-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-500 hidden">Close Chat</button>
 </div>
+
+<!-- SVG Illustration -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-24 w-24 text-gray-300 dark:text-gray-700 opacity-10 absolute top-0 left-0 transform -translate-x-8 -translate-y-8">
+    <path fill="currentColor" d="M5 10v4a1 1 0 0 0 1 1h6v5a1 1 0 0 0 1.7.7l5-5a1 1 0 0 0 0-1.4l-5-5A1 1 0 0 0 13 9v5H6a1 1 0 0 0-1 1z"/>
+</svg>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js" integrity="sha512-N2Wl5WkPmrXfbFv8SClJV4W77jbcqR3y8x1/hJy15aDqOSBlrQJYZmAVTFgCUgr2fX9bUjR9H7XXxNXQe0Y4/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="text/javascript">
@@ -123,3 +127,4 @@
     setInterval(fetchAndUpdateMessages, 15000);
 </script>
 {% endblock %}
+

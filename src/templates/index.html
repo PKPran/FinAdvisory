@@ -7,10 +7,14 @@
     <!-- Welcome Section -->
     <section class="py-20 bg-gradient-to-r from-blue-400 to-purple-400 text-white">
         <div class="container mx-auto text-center px-4">
-            {%if current_user.is_ca %}
-                <h2 class="text-4xl font-bold mb-4">Welcome to FinAdvisory, CA {{ current_user.full_name() }}!</h2>
+            {% if current_user.is_authenticated %}
+                {%if current_user.is_ca %}
+                    <h2 class="text-4xl font-bold mb-4">Welcome to FinAdvisory, CA {{ current_user.full_name() }}!</h2>
+                {% else %}
+                    <h2 class="text-4xl font-bold mb-4">Welcome to FinAdvisory, {{ current_user.full_name() }}!</h2>
+                {% endif %}
             {% else %}
-                <h2 class="text-4xl font-bold mb-4">Welcome to FinAdvisory, {{ current_user.full_name() }}!</h2>
+                <h2 class="text-4xl font-bold mb-4">Welcome to FinAdvisory!</h2>
             {% endif %}
             <p class="text-lg">Your trusted partner in financial planning and advisory services. We help you secure your financial future with personalized and expert advice.</p>
         </div>
