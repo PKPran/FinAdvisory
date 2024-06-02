@@ -98,33 +98,6 @@
         messageContainer.appendChild(messageElement);
         messageContainer.scrollTop = messageContainer.scrollHeight; 
     });
-
-    function fetchAndUpdateMessages() {
-        fetch('/chat')
-            .then(response => response.json())
-            .then(data => {
-                document.querySelectorAll('[id^="message-container-"]').forEach(function(container) {
-                    container.innerHTML = '';
-                });
-                data.chat_users.forEach(user => {
-                    var messageContainer = document.getElementById('message-container-' + user.uuid);
-                    user.messages.forEach(message => {
-                        var messageElement = document.createElement('div');
-                        if (message.sender_id === '{{ current_user.uuid }}') {
-                            messageElement.classList.add('flex', 'items-start', 'justify-end');
-                            messageElement.innerHTML = '<div class="bg-blue-500 text-white rounded-lg p-2"><span>' + message.body + '</span></div>';
-                        } else {
-                            messageElement.classList.add('flex', 'items-start');
-                            messageElement.innerHTML = '<div class="bg-gray-200 rounded-lg p-2"><span class="text-gray-700">' + message.body + '</span></div>';
-                        }
-                        messageContainer.appendChild(messageElement);
-                    });
-                    messageContainer.scrollTop = messageContainer.scrollHeight; 
-                });
-            })
-            .catch(error => console.error('Error fetching messages:', error));
-    }
-    setInterval(fetchAndUpdateMessages, 15000);
 </script>
 {% endblock %}
 
