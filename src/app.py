@@ -224,22 +224,6 @@ def view_profile(uuid):
     return render_template("view_profile.html", user=user)
 
 
-@app.route("/settings", methods=["GET", "POST"])
-@login_required
-def settings():
-    if request.method == "POST":
-        user = User.query.filter_by(uuid=current_user.uuid).first()
-        user.first_name = request.form["first_name"]
-        user.middle_name = request.form["middle_name"]
-        user.last_name = request.form["last_name"]
-        user.email = request.form["email"]
-        user.phone_number = request.form["phone_number"]
-        db.session.commit()
-        flash("Profile updated successfully.", "success")
-        return redirect(url_for("index"))
-    return render_template("settings.html")
-
-
 @app.route("/view_requests", methods=["GET", "POST"])
 @login_required
 def view_requests():
@@ -388,6 +372,41 @@ def contact_us():
         flash("Message sent successfully.", "success")
         return redirect(url_for("index"))
     return render_template("contact_us.html")
+
+@app.route("/update_profile/<uuid:uuid>", methods=["GET", "POST"])
+@login_required
+def update_profile(uuid):
+    user = User.query.filter_by(uuid=str(uuid)).first()
+    if request.method == "POST":
+        user.first_name = request.form["first_name"]
+        user.middle_name = request.form["middle_name"]
+        user.last_name = request.form["last_name"]
+        user.email = request.form["email"]
+        user.phone_number = request.form["phone_number"]
+        if user.is_ca:
+            user.certificate = request.form["certificate"]
+            user.base_fee = request.form["base_fee"]
+            user.bank_account = request.form["bank_account"]
+            user.ifsc = request.form["ifsc"]
+        db.session.commit()
+        flash("Profile updated successfully.", "success")
+        return redirect(url_for("view_profile", uuid=user.uuid))
+    return render_template("update_profile.html", user=user)
+
+@app.route("/settings", methods=["GET"])
+@login_required
+def settings():
+    if request.method == "POST":
+        user = User.query.filter_by(uuid=current_user.uuid).first()
+        user.first_name = request.form["first_name"]
+        user.middle_name = request.form["middle_name"]
+        user.last_name = request.form["last_name"]
+        user.email = request.form["email"]
+        user.phone_number = request.form["phone_number"]
+        db.session.commit()
+        flash("Profile updated successfully.", "success")
+        return redirect(url_for("index"))
+    return render_template("settings.html")
 
 if __name__ == "__main__":
     socketio.run(app, port=5001, debug=True)
