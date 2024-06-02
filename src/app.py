@@ -154,10 +154,11 @@ def login():
     if request.method == "POST":
         user_name = request.form["user_name"]
         password = request.form["password"]
+        remember = True if request.form.get("remember") else False
         user = User.query.filter_by(user_name=user_name).first()
         if user:
             if user.check_password(password):
-                login_user(user)
+                login_user(user, remember=remember)
                 flash("Login successful!", "success")
                 return redirect(url_for("index"))
             else:
@@ -348,7 +349,7 @@ def chat():
 @login_required
 def handle_private_message(data):
     sender = current_user.uuid
-    recipient = str(data["recipient"])
+    recipient = data["recipient"].replace("message-form-", "")
     message = data["message"]
     print("sender", sender)
     print("recipient", recipient)

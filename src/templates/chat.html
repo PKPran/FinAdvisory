@@ -76,7 +76,7 @@
             var message = messageInput.value.trim();
             if (message !== '') {
                 socket.emit('private_message', {
-                    recipient: form.getAttribute('id').split('-')[2], 
+                    recipient: form.getAttribute('id'), 
                     message: message
                 });
                 messageInput.value = '';
