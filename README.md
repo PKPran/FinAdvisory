@@ -1,4 +1,3 @@
-
 # FinAdvisory
 
 Welcome to FinAdvisory! This project aims to provide a platform for consulting chartered accountants (CAs) at fixed charges set by the CA.
@@ -41,4 +40,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Contact
 
-For any inquiries, feedback, or suggestions, feel free to contact Praneeth Kakathkar at [your@email.com].
+For any inquiries, feedback, or suggestions, feel free to contact Praneeth Kakathkar at pkpran10@gmail.com.
