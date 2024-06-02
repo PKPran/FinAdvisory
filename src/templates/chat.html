@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat{% endblock %}
+
+{% block content %}
+<div class="container mx-auto flex flex-col h-full">
+    <label for="user-select" class="mb-2">Select a User:</label>
+    <select id="user-select" class="mb-4 border border-gray-300 rounded-md p-2">
+        <option value="">Select a user</option>
+        {% for user in chat_users %}
+        <option value="{{ user.uuid }}">{{ user.full_name() }}</option>
+        {% endfor %}
+    </select>
+    <div id="chat-container" class="overflow-y-auto flex-grow hidden">
+        {% for user in chat_users %}
+        <div id="chat-{{ user.uuid }}" class="border-b border-gray-200 mb-4 pb-4 hidden">
+            <h2 class="text-lg font-semibold mb-2">{{ user.full_name() }}</h2>
+            <div id="message-container-{{ user.uuid }}" class="overflow-y-auto flex flex-col space-y-2" style="max-height: 60vh;">
+                {% for message in user.messages %}
+                <div class="flex items-start {% if message.sender_id == current_user.uuid %} justify-end {% endif %}">
+                    {% if message.sender_id != current_user.uuid %}
+                    <div class="bg-gray-200 rounded-lg p-2">
+                        <span class="text-gray-700">{{ message.body }}</span>
+                    </div>
+                    {% else %}
+                    <div class="bg-blue-500 text-white rounded-lg p-2">
+                        <span>{{ message.body }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <form id="message-form-{{ user.uuid }}" class="flex justify-between mt-2">
+                <input id="message-input-{{ user.uuid }}" type="text" placeholder="Type your message..." class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-500">
+                <button type="submit" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-500">Send</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    <button id="close-chat" class="mt-2 mb-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-500 hidden">Close Chat</button>
+</div>
+
+<!-- SVG Illustration -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-24 w-24 text-gray-300 dark:text-gray-700 opacity-10 absolute top-0 left-0 transform -translate-x-8 -translate-y-8">
+    <path fill="currentColor" d="M5 10v4a1 1 0 0 0 1 1h6v5a1 1 0 0 0 1.7.7l5-5a1 1 0 0 0 0-1.4l-5-5A1 1 0 0 0 13 9v5H6a1 1 0 0 0-1 1z"/>
+</svg>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js" integrity="sha512-N2Wl5WkPmrXfbFv8SClJV4W77jbcqR3y8x1/hJy15aDqOSBlrQJYZmAVTFgCUgr2fX9bUjR9H7XXxNXQe0Y4/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script type="text/javascript">
+    var socket = io();
+    document.getElementById('user-select').addEventListener('change', function(event) {
+        var selectedUserId = event.target.value;
+        document.querySelectorAll('[id^="chat-"]').forEach(function(chatContainer) {
+            chatContainer.classList.add('hidden');
+        });
+        if (!selectedUserId) {
+            document.getElementById('chat-container').classList.add('hidden');
+            document.getElementById('close-chat').classList.add('hidden');
+        } else {
+            document.getElementById('chat-' + selectedUserId).classList.remove('hidden');
+            document.getElementById('chat-container').classList.remove('hidden');
+            document.getElementById('close-chat').classList.remove('hidden');
+        }
+    });
+
+    document.getElementById('close-chat').addEventListener('click', function() {
+        document.getElementById('chat-container').classList.add('hidden');
+        document.getElementById('close-chat').classList.add('hidden');
+        document.getElementById('user-select').value = "";
+    });
+
+    document.querySelectorAll('[id^="message-form-"]').forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            var messageInput = form.querySelector('input[type="text"]');
+            var message = messageInput.value.trim();
+            if (message !== '') {
+                socket.emit('private_message', {
+                    recipient: form.getAttribute('id'), 
+                    message: message
+                });
+                messageInput.value = '';
+            }
+        });
+    });
+
+    socket.on('private_message', function(data) {
+        var messageContainer = document.getElementById('message-container-' + data.sender);
+        var messageElement = document.createElement('div');
+        messageElement.textContent = data.sender + ': ' + data.message;
+        if (data.sender === '{{ current_user.uuid }}') {
+            messageElement.classList.add('flex', 'items-start', 'justify-end');
+            messageElement.innerHTML = '<div class="bg-blue-500 text-white rounded-lg p-2"><span>' + data.message + '</span></div>';
+        } else {
+            messageElement.classList.add('flex', 'items-start');
+            messageElement.innerHTML = '<div class="bg-gray-200 rounded-lg p-2"><span class="text-gray-700">' + data.message + '</span></div>';
+        }
+        messageContainer.appendChild(messageElement);
+        messageContainer.scrollTop = messageContainer.scrollHeight; 
+    });
+</script>
+{% endblock %}
+
