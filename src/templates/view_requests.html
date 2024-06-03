@@ -31,12 +31,6 @@
                             Customer Name
                         </th>
                         <th scope="col" class="px-6 py-3">
-                            Last Updated
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Email
-                        </th>
-                        <th scope="col" class="px-6 py-3">
                             Description
                         </th>
                         <th scope="col" class="px-6 py-3">
@@ -47,6 +41,9 @@
                         </th>
                         <th scope="col" class="px-6 py-3">
                             Payment Status
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Chat
                         </th>
                         <th scope="col" class="px-6 py-3">
                             Action
@@ -58,12 +55,6 @@
                             Chartered Accountant
                         </th>
                         <th scope="col" class="px-6 py-3">
-                            Last Updated
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Email
-                        </th>
-                        <th scope="col" class="px-6 py-3">
                             Description
                         </th>
                         <th scope="col" class="px-6 py-3">
@@ -74,6 +65,9 @@
                         </th>
                         <th scope="col" class="px-6 py-3">
                             Payment Status
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Chat
                         </th>
                         <th scope="col" class="px-6 py-3">
                             Action
@@ -87,12 +81,6 @@
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ request.customer_name }}
-                            </td>
-                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ request.request.updated_at.strftime('%d %b, %Y')}}
-                            </td>
-                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ request.email }}
                             </td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ request.request.description }}
@@ -120,17 +108,23 @@
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 font-medium whitespace-nowrap dark:text-white">
-                                {% if request.status == "Submitted" %}
-                                    NA
-                                {% elif request.status == "Accepted" %}
-                                <button class="bg-yellow-500 hover:bg-yellow-200 text-white font-bold py-1 px-3 rounded-full">
-                                    <i class="fas fa-clock mr-2"></i> Pending
-                                </button>
-                                {% elif request.status == "Rejected" %}
-                                    NA
-                                {% elif request.status == "Cancelled by User" %}
+                                {% if request.status == "Accepted" %}
+                                    <button class="bg-yellow-500 hover:bg-yellow-200 text-white font-bold py-1 px-3 rounded-full">
+                                        <i class="fas fa-clock mr-2"></i> Pending
+                                    </button>
+                                {% else%}
                                     NA
                                 {% endif %}
+                            </td>
+                            <td>
+                                {% if request.status == "Accepted" %}
+                                    <a href="{{url_for('chat')}}" class="bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-full">
+                                        <i class="fa-regular fa-comments mr-2"></i> Chat Now
+                                    </a>
+                                {% else %}
+                                    NA
+                                {% endif %}
+
                             </td>                      
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {% if request.status == "Cancelled by User" %}
@@ -152,16 +146,10 @@
                                 {{ request.ca_name }}
                             </td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ request.request.updated_at.strftime('%d %b, %Y, %H:%M %p')}}
-                            </td>
-                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ request.email }}
-                            </td>
-                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ request.request.description }}
                             </td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                ₹{{ request.amount }}
+                                <span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">₹{{ request.amount }}</span>
                             </td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {% if request.status == "Submitted" %}
@@ -183,18 +171,24 @@
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {% if request.status == "Submitted" %}
-                                    NA
-                                {% elif request.status == "Accepted" %}
-                                <a id="pay-button" data-amount="{{ request.amount }}" ca-name="{{request.ca_name}}" request-uuid="{{request.request.uuid}}" class="bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-lg">
-                                    <i class="fa-solid fa-cart-shopping mr-2"></i>Make Payment
-                                </a>
-                                {% elif request.status == "Rejected" %}
-                                    NA
-                                {% elif request.status == "Cancelled by User" %}
+                                {% if request.status == "Accepted" %}
+                                    <button class="bg-yellow-500 hover:bg-yellow-200 text-white font-bold py-1 px-3 rounded-full">
+                                        <i class="fas fa-clock mr-2"></i> Pending
+                                    </button>
+                                {% else%}
                                     NA
                                 {% endif %}
                             </td>
+                            <td>
+                                {% if request.status == "Accepted" %}
+                                    <a href="{{url_for('chat')}}" class="whitespace-nowrap bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-full">
+                                        <i class="fa-regular fa-comments mr-2"></i> Chat Now
+                                    </a>
+                                {% else %}
+                                    NA
+                                {% endif %}
+
+                            </td>    
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 <a href="{{url_for('cancel_request', uuid=request.request.uuid)}}" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 rounded-full"><i class="fa-solid fa-xmark mr-2"></i>Cancel</a>
                             </td>
