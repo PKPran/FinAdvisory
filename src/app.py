@@ -12,7 +12,7 @@ import os
 from database import db
 from sqlalchemy import inspect, or_
 from utils import finadv_gen_hash
-from utils import get_ist_time, generate_uuid
+from utils import get_ist_time, generate_uuid, get_request_data
 import razorpay
 
 razorpay_client = razorpay.Client(
@@ -34,7 +34,9 @@ with app.app_context():
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    ca_list = User.query.filter(User.is_ca == True).all()
+    request_data = get_request_data(current_user) if current_user.is_authenticated else []
+    return render_template("index.html", ca_list=ca_list, requests=request_data)
 
 
 @app.route("/list_database")
@@ -235,33 +237,7 @@ def view_profile(uuid):
 @app.route("/view_requests", methods=["GET", "POST"])
 @login_required
 def view_requests():
-    request_data = []
-    if current_user.is_ca:
-        requests = Request.query.filter_by(ca_uuid=current_user.uuid).all()
-        for request in requests:
-            customer = User.query.filter_by(uuid=request.customer_uuid).first()
-            request_data.append(
-                {
-                    "request": request,
-                    "customer_name": customer.full_name(),
-                    "amount": current_user.base_fee,
-                    "status": request.status,
-                    "email": customer.email,
-                }
-            )
-    else:
-        requests = Request.query.filter_by(customer_uuid=current_user.uuid).all()
-        for request in requests:
-            ca = User.query.filter_by(uuid=request.ca_uuid).first()
-            request_data.append(
-                {
-                    "request": request,
-                    "ca_name": ca.full_name(),
-                    "amount": ca.base_fee,
-                    "status": request.status,
-                    "email": ca.email,
-                }
-            )
+    request_data = get_request_data(current_user)
     return render_template("view_requests.html", requests=request_data)
 
 
