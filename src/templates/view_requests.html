@@ -46,6 +46,9 @@
                             Status
                         </th>
                         <th scope="col" class="px-6 py-3">
+                            Payment Status
+                        </th>
+                        <th scope="col" class="px-6 py-3">
                             Action
                         </th>
                     </tr>
@@ -68,6 +71,9 @@
                         </th>
                         <th scope="col" class="px-6 py-3">
                             Status
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Payment Status
                         </th>
                         <th scope="col" class="px-6 py-3">
                             Action
@@ -112,7 +118,20 @@
                                         <i class="fas fa-ban mr-2"></i> Cancelled by User
                                     </button>
                                 {% endif %}
-                            </td>                        
+                            </td>
+                            <td class="px-6 py-4 font-medium whitespace-nowrap dark:text-white">
+                                {% if request.status == "Submitted" %}
+                                    NA
+                                {% elif request.status == "Accepted" %}
+                                <button class="bg-yellow-500 hover:bg-yellow-200 text-white font-bold py-1 px-3 rounded-full">
+                                    <i class="fas fa-clock mr-2"></i> Pending
+                                </button>
+                                {% elif request.status == "Rejected" %}
+                                    NA
+                                {% elif request.status == "Cancelled by User" %}
+                                    NA
+                                {% endif %}
+                            </td>                      
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {% if request.status == "Cancelled by User" %}
                                     <span class="text-red-500">Cancelled by User</span>
@@ -164,7 +183,20 @@
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                <a href="{{url_for('cancel_request', uuid=request.request.uuid)}}" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"><i class="fa-solid fa-xmark mr-2"></i>Cancel</a>
+                                {% if request.status == "Submitted" %}
+                                    NA
+                                {% elif request.status == "Accepted" %}
+                                    <a href="{{url_for('make_payment', amount=request.amount)}}" class="bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-lg">
+                                        <i class="fa-solid fa-cart-shopping mr-2"></i>Make Payment
+                                    </a>
+                                {% elif request.status == "Rejected" %}
+                                    NA
+                                {% elif request.status == "Cancelled by User" %}
+                                    NA
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                <a href="{{url_for('cancel_request', uuid=request.request.uuid)}}" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 rounded-full"><i class="fa-solid fa-xmark mr-2"></i>Cancel</a>
                             </td>
                         </tr>
                     {% endif %}
