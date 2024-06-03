@@ -17,7 +17,7 @@ from utils import generate_uuid, get_ist_time
 class User(UserMixin, db.Model):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    uuid = Column(String(80), unique=True, nullable=False, default=generate_uuid())
+    uuid = Column(String(80), unique=True, nullable=False)
     created_at = Column(DateTime, nullable=False, default=get_ist_time())
     updated_at = Column(
         DateTime, nullable=False, onupdate=get_ist_time(), default=get_ist_time()
@@ -55,7 +55,7 @@ class User(UserMixin, db.Model):
 class Transaction(db.Model):
     __tablename__ = "transaction"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    uuid = Column(String(80), unique=True, nullable=False, default=generate_uuid())
+    uuid = Column(String(80), unique=True, nullable=False)
     created_at = Column(DateTime, nullable=False, default=get_ist_time())
     updated_at = Column(DateTime, nullable=False, onupdate=get_ist_time())
     amount = Column(Float, nullable=False)
@@ -69,7 +69,7 @@ class Transaction(db.Model):
 class Request(db.Model):
     __tablename__ = "request"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    uuid = Column(String(80), unique=True, nullable=False, default=generate_uuid())
+    uuid = Column(String(80), unique=True, nullable=False)
     created_at = Column(DateTime, nullable=False, default=get_ist_time())
     updated_at = Column(DateTime, nullable=False, onupdate=get_ist_time(), default=get_ist_time())
     customer_uuid = Column(Integer, ForeignKey("user.uuid"))
@@ -86,7 +86,7 @@ class Request(db.Model):
 class RequestLine(db.Model):
     __tablename__ = "request_line"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    uuid = Column(String(80), unique=True, nullable=False, default=generate_uuid())
+    uuid = Column(String(80), unique=True, nullable=False)
     created_at = Column(DateTime, nullable=False, default=get_ist_time())
     updated_at = Column(
         DateTime, nullable=False, onupdate=get_ist_time(), default=get_ist_time()

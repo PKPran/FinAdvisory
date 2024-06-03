@@ -12,7 +12,7 @@ import os
 from database import db
 from sqlalchemy import inspect, or_
 from utils import finadv_gen_hash
-from utils import get_ist_time
+from utils import get_ist_time, generate_uuid
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -81,6 +81,7 @@ def register():
             return redirect(url_for("register"))
         password_hash = finadv_gen_hash(password)
         new_user = User(
+            uuid=generate_uuid(),
             user_name=user_name,
             password_hash=password_hash,
             first_name=first_name,
@@ -128,6 +129,7 @@ def register_ca():
             return redirect(url_for("register_ca"))
         password_hash = finadv_gen_hash(password)
         new_ca = User(
+            uuid=generate_uuid(),
             user_name=user_name,
             password_hash=password_hash,
             first_name=first_name,
@@ -193,6 +195,7 @@ def book_ca(ca_uuid):
     if request.method == "POST":
         description = request.form["description"]
         new_request_line = RequestLine(
+            uuid=generate_uuid(),
             customer_uuid=current_user.uuid,
             ca_uuid=str(ca_uuid),
             date=get_ist_time(),
@@ -202,6 +205,7 @@ def book_ca(ca_uuid):
         )
         db.session.add(new_request_line)
         new_request = Request(
+            uuid=generate_uuid(),
             customer_uuid=current_user.uuid,
             ca_uuid=str(ca_uuid),
             date=get_ist_time(),
@@ -280,6 +284,7 @@ def update_request(uuid, status):
     request = Request.query.filter_by(uuid=str(uuid)).first()
     request.status = status
     new_request_line = RequestLine(
+        uuid=generate_uuid(),
         customer_uuid=request.customer_uuid,
         ca_uuid=request.ca_uuid,
         date=get_ist_time(),
