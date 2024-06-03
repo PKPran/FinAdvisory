@@ -5,78 +5,385 @@
 {% block content %}
 <div class="bg-gray-100 text-gray-900 mb-10">
     <!-- Welcome Section -->
-    <section class="py-20 bg-gradient-to-r from-blue-400 to-purple-400 text-white">
-        <div class="container mx-auto text-center px-4">
-            {% if current_user.is_authenticated %}
-                {%if current_user.is_ca %}
-                    <h2 class="text-4xl font-bold mb-4">Welcome to FinAdvisory, CA {{ current_user.full_name() }}!</h2>
-                {% else %}
-                    <h2 class="text-4xl font-bold mb-4">Welcome to FinAdvisory, {{ current_user.full_name() }}!</h2>
-                {% endif %}
-            {% else %}
-                <h2 class="text-4xl font-bold mb-4">Welcome to FinAdvisory!</h2>
+    {% if current_user.is_authenticated %}
+        <div class="container mx-auto px-4 py-10">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Find Chartered Accountant</h1>
+            <form action="{{ url_for('find_ca') }}" method="POST" class="max-w-md mx-auto mb-8">
+                <div class="relative">
+                    <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-full py-3 px-4 w-full focus:outline-none focus:border-blue-500"
+                    placeholder="Search by CA Name"
+                    />
+                    <button type="submit" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0 2a10 10 0 100-20 10 10 0 000 20z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        
+            {% if ca_list %}
+                <div class="relative overflow-x-auto mt-5">
+                    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">
+                                    First Name
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Last Name
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Email
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Base Fee / Session
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Book Now
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ca in ca_list %}
+                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ ca.first_name }}
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ ca.last_name }}
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ ca.email }}
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">₹{{ ca.base_fee }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        <a href="{{ url_for('book_ca', ca_uuid=ca.uuid) }}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Book Now<i class="fa fa-angle-double-right ml-2" aria-hidden="true"></i></a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             {% endif %}
-            <p class="text-lg">Your trusted partner in financial planning and advisory services. We help you secure your financial future with personalized and expert advice.</p>
         </div>
-    </section>
-    
-    <!-- Services Section -->
-    <section id="services" class="py-20">
-        <div class="container mx-auto text-center px-4">
-            <h2 class="text-3xl font-bold mb-8">Our Services</h2>
-            <div class="flex flex-wrap justify-center -mx-4">
-                <div class="w-full sm:w-1/2 lg:w-1/3 px-4 mb-8">
-                    <div class="bg-white p-6 rounded-lg shadow-lg">
-                        <h3 class="text-2xl font-bold mb-4 text-blue-600">Financial Planning</h3>
-                        <p class="text-gray-700">Comprehensive financial planning to achieve your long-term goals.</p>
+
+        <script>
+            function toggleButton() {
+                var dropdown = document.getElementById("statusDropdown");
+                var button = document.getElementById("updateButton");
+                if (dropdown.value === "Accepted" || dropdown.value === "Rejected") {
+                    button.classList.remove("hidden");
+                } else {
+                    button.classList.add("hidden");
+                }
+            }
+        
+            function updateRequest(uuid) {
+                var dropdown = document.getElementById("statusDropdown");
+                var status = dropdown.value;
+                var url = "/update_request/" + uuid + "/" + status;
+                window.location.href = url;
+            }
+        </script>
+        <div class="container mx-auto px-4 py-10">
+                <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">View Requests</h1>
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        {% if current_user.is_ca %}
+                            <tr>
+                                <th scope="col" class="px-6 py-3">
+                                    Customer Name
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Description
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Base Fee / Session
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Status
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Payment Status
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Chat
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Action
+                                </th>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <th scope="col" class="px-6 py-3">
+                                    Chartered Accountant
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Description
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Base Fee / Session
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Status
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Payment Status
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Chat
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Action
+                                </th>
+                            </tr>
+                        {% endif %}
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                            {% if current_user.is_ca %}
+                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ request.customer_name }}
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ request.request.description }}
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300"> ₹{{ request.amount }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 font-medium whitespace-nowrap dark:text-white">
+                                        {% if request.status == "Submitted" %}
+                                            <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fas fa-clock mr-2"></i> Submitted
+                                            </button>
+                                        {% elif request.status == "Accepted" %}
+                                            <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fas fa-check-circle mr-2"></i> Accepted
+                                            </button>
+                                        {% elif request.status == "Rejected" %}
+                                            <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fas fa-times-circle mr-2"></i> Rejected
+                                            </button>
+                                        {% elif request.status == "Cancelled by User" %}
+                                            <button class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fas fa-ban mr-2"></i> Cancelled by User
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 font-medium whitespace-nowrap dark:text-white">
+                                        {% if request.status == "Accepted" %}
+                                            <button class="bg-yellow-500 hover:bg-yellow-200 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fas fa-clock mr-2"></i> Pending
+                                            </button>
+                                        {% else%}
+                                            NA
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.status == "Accepted" %}
+                                            <a href="{{url_for('chat')}}" class="bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fa-regular fa-comments mr-2"></i> Chat Now
+                                            </a>
+                                        {% else %}
+                                            NA
+                                        {% endif %}
+
+                                    </td>                      
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {% if request.status == "Cancelled by User" %}
+                                            <span class="text-red-500">Cancelled by User</span>
+                                        {% else %}
+                                            <div class="relative inline-block">
+                                                <select id="statusDropdown" name="status" class="block w-full py-2 pl-3 pr-10 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-gray-400 dark:focus:border-gray-400 sm:text-sm py-1 px-3 rounded-full" onchange="toggleButton()">
+                                                    <option value="Accepted">Accept</option>
+                                                    <option value="Rejected">Reject</option>
+                                                </select>
+                                                <button id="updateButton" class="hidden mt-2 ml-2 py-2 px-4 bg-blue-500 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" onclick="updateRequest('{{request.request.uuid}}')">Update</button>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ request.ca_name }}
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ request.request.description }}
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">₹{{ request.amount }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {% if request.status == "Submitted" %}
+                                            <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fas fa-clock mr-2"></i> Submitted
+                                            </button>
+                                        {% elif request.status == "Accepted" %}
+                                            <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fas fa-check-circle mr-2"></i> Accepted
+                                            </button>
+                                        {% elif request.status == "Rejected" %}
+                                            <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fas fa-times-circle mr-2"></i> Rejected
+                                            </button>
+                                        {% elif request.status == "Cancelled by User" %}
+                                            <button class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fas fa-ban mr-2"></i> Cancelled by User
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {% if request.status == "Accepted" %}
+                                            <button class="bg-yellow-500 hover:bg-yellow-200 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fas fa-clock mr-2"></i> Pending
+                                            </button>
+                                        {% else%}
+                                            NA
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.status == "Accepted" %}
+                                            <a href="{{url_for('chat')}}" class="whitespace-nowrap bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-full">
+                                                <i class="fa-regular fa-comments mr-2"></i> Chat Now
+                                            </a>
+                                        {% else %}
+                                            NA
+                                        {% endif %}
+
+                                    </td>    
+                                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        <a href="{{url_for('cancel_request', uuid=request.request.uuid)}}" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 rounded-full"><i class="fa-solid fa-xmark mr-2"></i>Cancel</a>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+        </div>
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <script>
+            document.getElementById('pay-button').onclick = function(e){
+                e.preventDefault();
+                
+                var amount = e.target.getAttribute('data-amount');
+                var ca_name = e.target.getAttribute('ca-name');
+                var request_uuid = e.target.getAttribute('request-uuid');
+        
+                var options = {
+                    "key": "rzp_test_Q7dYN8I5O4YPOu",
+                    "amount": amount * 100,
+                    "currency": "INR",
+                    "name": "Your Company Name",
+                    "description": "Test Transaction",
+                    "image": "/static/logo/logo.png",
+                    "handler": function (response){
+                        fetch("/charge", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                payment_id: response.razorpay_payment_id,
+                                amount: amount,
+                                ca_name: ca_name,
+                                request_uuid: request_uuid
+                            })
+                        })
+                        .then(response => response.text())
+                    },
+                    "prefill": {
+                        "name": "Test Name",
+                        "email": "test@example.com"
+                    },
+                    "theme": {
+                        "color": "#F37254"
+                    }
+                };
+        
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+            }
+        </script>
+    {% else %}
+        <!-- Welcome Section with Gradient Background -->
+        <section class="py-20 bg-gradient-to-r from-blue-400 to-purple-400 text-white">
+            <div class="container mx-auto text-center px-4">
+                <h2 class="text-4xl font-bold mb-4">Welcome to FinAdvisory!</h2>
+                <p class="text-lg">Your trusted partner in financial planning and advisory services. We help you secure your financial future with personalized and expert advice.</p>
+            </div>
+        </section>
+
+        <!-- Services Section with Card Style -->
+        <section id="services" class="py-20 bg-gray-100">
+            <div class="container mx-auto text-center px-4">
+                <h2 class="text-3xl font-bold mb-8 text-gray-800">Our Services</h2>
+                <div class="flex flex-wrap justify-center -mx-4">
+                    <div class="w-full sm:w-1/2 lg:w-1/3 px-4 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                            <h3 class="text-2xl font-bold mb-4 text-blue-600">Financial Planning</h3>
+                            <p class="text-gray-700">Comprehensive financial planning to achieve your long-term goals.</p>
+                        </div>
                     </div>
-                </div>
-                <div class="w-full sm:w-1/2 lg:w-1/3 px-4 mb-8">
-                    <div class="bg-white p-6 rounded-lg shadow-lg">
-                        <h3 class="text-2xl font-bold mb-4 text-blue-600">Investment Advice</h3>
-                        <p class="text-gray-700">Expert investment advice tailored to your risk tolerance and objectives.</p>
+                    <div class="w-full sm:w-1/2 lg:w-1/3 px-4 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                            <h3 class="text-2xl font-bold mb-4 text-blue-600">Investment Advice</h3>
+                            <p class="text-gray-700">Expert investment advice tailored to your risk tolerance and objectives.</p>
+                        </div>
                     </div>
-                </div>
-                <div class="w-full sm:w-1/2 lg:w-1/3 px-4 mb-8">
-                    <div class="bg-white p-6 rounded-lg shadow-lg">
-                        <h3 class="text-2xl font-bold mb-4 text-blue-600">Retirement Planning</h3>
-                        <p class="text-gray-700">Plan for a comfortable retirement with our customized strategies.</p>
+                    <div class="w-full sm:w-1/2 lg:w-1/3 px-4 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                            <h3 class="text-2xl font-bold mb-4 text-blue-600">Retirement Planning</h3>
+                            <p class="text-gray-700">Plan for a comfortable retirement with our customized strategies.</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+        <!-- About Section with Card Style -->
+        <section id="about" class="relative py-20 bg-white shadow-lg rounded-lg mx-4 md:mx-20 my-10">
+            <svg class="absolute bottom-0 left-0 w-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#E5E7EB" fill-opacity="1" d="M0,224L1440,32L1440,320L0,320Z"></path>
+            </svg>
+            <div class="container mx-auto text-center px-4 relative z-10">
+                <h2 class="text-3xl font-bold mb-8 text-gray-800">About Us</h2>
+                <p class="text-lg text-gray-700">At FinAdvisory, we are committed to providing top-notch financial advisory services. Our team of experienced professionals is dedicated to helping you achieve your financial goals with personalized advice and comprehensive planning.</p>
+            </div>
+        </section>
 
-    <!-- About Us Section with Fluid SVG Illustration -->
-    <section id="about" class="relative py-20 bg-gray-100 shadow-lg">
-        <svg class="absolute bottom-0 left-0 w-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="#E5E7EB" fill-opacity="1" d="M0,224L1440,32L1440,320L0,320Z"></path></svg>
-        <div class="container mx-auto text-center px-4 relative z-10">
-            <h2 class="text-3xl font-bold mb-8 text-gray-800">About Us</h2>
-            <p class="text-lg text-gray-700">At FinAdvisory, we are committed to providing top-notch financial advisory services. Our team of experienced professionals is dedicated to helping you achieve your financial goals with personalized advice and comprehensive planning.</p>
-        </div>
-    </section>
+        <!-- Contact Section with Card Style -->
+        <section id="contact" class="relative py-20 bg-white shadow-lg rounded-lg mx-4 md:mx-20 my-10">
+            <svg class="absolute bottom-0 left-0 w-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#E5E7EB" fill-opacity="1" d="M0,224L1440,32L1440,320L0,320Z"></path>
+            </svg>
+            <div class="container mx-auto text-center px-4 relative z-10">
+                <h2 class="text-3xl font-bold mb-8 text-gray-800">Contact Us</h2>
+                <form class="max-w-lg mx-auto">
+                    <div class="mb-4">
+                        <label for="name" class="block text-left text-gray-700 mb-2">Name</label>
+                        <input type="text" id="name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    </div>
+                    <div class="mb-4">
+                        <label for="email" class="block text-left text-gray-700 mb-2">Email</label>
+                        <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    </div>
+                    <div class="mb-4">
+                        <label for="message" class="block text-left text-gray-700 mb-2">Message</label>
+                        <textarea id="message" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"></textarea>
+                    </div>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Send Message</button>
+                </form>
+            </div>
+        </section>
 
-    <!-- Contact Section with Fluid SVG Illustration -->
-    <section id="contact" class="relative py-20 bg-gray-200 shadow-lg">
-        <svg class="absolute bottom-0 left-0 w-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="#E5E7EB" fill-opacity="1" d="M0,224L1440,32L1440,320L0,320Z"></path></svg>
-        <div class="container mx-auto text-center px-4 relative z-10">
-            <h2 class="text-3xl font-bold mb-8 text-gray-800">Contact Us</h2>
-            <form class="max-w-lg mx-auto">
-                <div class="mb-4">
-                    <label for="name" class="block text-left text-gray-700 mb-2">Name</label>
-                    <input type="text" id="name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
-                </div>
-                <div class="mb-4">
-                    <label for="email" class="block text-left text-gray-700 mb-2">Email</label>
-                    <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
-                </div>
-                <div class="mb-4">
-                    <label for="message" class="block text-left text-gray-700 mb-2">Message</label>
-                    <textarea id="message" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"></textarea>
-                </div>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Send Message</button>
-            </form>
-        </div>
-    </section>
+        {% endif %}
 </div>
 {% endblock %}

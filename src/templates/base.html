@@ -45,19 +45,17 @@
                 <img src="{{ url_for('static', filename='logo/logo.png') }}" alt="Logo" class="h-8 w-auto mr-2">
                 FinAdvisory
             </a>
-            {% if current_user.is_authenticated and not current_user.is_ca%}
-                <ul class="flex space-x-6">
-                    <li><a href="{{ url_for('find_ca')}}" class="text-white font-bold py-2 px-4 rounded gradient-button">Find a CA</a></li>
-                    <li><a href="#" class="text-white font-bold py-2 px-4 rounded gradient-button">Online Consult</a></li>
-                </ul>
+            {% if current_user.is_authenticated %}
+                <ul class="flex space-x-6 items-start justify-start">
+                    <li><a href="{{ url_for('index')}}" class="hover:text-blue-800 hover:underline hover:font-bold">Home</a></li>
+                    <li><a href="#" class="hover:text-blue-600">About</a></li>
+                    <li><a href="{{ url_for('contact_us') }}" class="hover:text-blue-600">Contact Us</a></li>
+                </ul>            
             {% endif %}
+            
             <ul class="flex space-x-4 items-center">
-                
-                <li><a href="{{ url_for('index')}}" class="hover:text-blue-800 hover:underline hover:font-bold ">Home</a></li>
-                <li><a href="#" class="hover:text-blue-600">About</a></li>
-                <li><a href="{{ url_for('contact_us') }}" class="hover:text-blue-600">Contact</a></li>
                 {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('chat') }}" class="hover:text-blue-600">Chat</a></li>
+                
                     <li>
                         <div x-data="{ open: false }" class="relative">
                             <div @click="open = !open" class="flex items-center cursor-pointer">
