@@ -7,16 +7,21 @@ from flask_login import (
     login_required,
     current_user,
 )
-from models import User, Request, RequestLine, Message
+from models import User, Request, RequestLine, Message, Transaction
 import os
 from database import db
 from sqlalchemy import inspect, or_
 from utils import finadv_gen_hash
 from utils import get_ist_time, generate_uuid
+import razorpay
+
+razorpay_client = razorpay.Client(
+    auth=("rzp_test_Q7dYN8I5O4YPOu", "Jmfll5EsRzxHuIQd7W6T2ltC")
+)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///finadvi.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///finadv.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 socketio = SocketIO(app)
 login_manager = LoginManager(app)
@@ -416,6 +421,7 @@ def settings():
         return redirect(url_for("index"))
     return render_template("settings.html")
 
+
 @app.route("/make_payment/<float:amount>", methods=["GET", "POST"])
 @login_required
 def make_payment(amount):
@@ -423,6 +429,30 @@ def make_payment(amount):
         flash("Payment successful.", "success")
         return redirect(url_for("view_requests"))
     return render_template("make_payment.html", amount=amount)
+
+
+@app.route("/charge", methods=["POST"])
+def charge():
+    payment_data = request.get_json()
+    payment_id = payment_data.get("payment_id", None)
+    amount = payment_data.get("amount", None)
+    ca_name = payment_data.get("ca_name", None)
+    request_uuid = payment_data.get("request_uuid", None)
+    razorpay_client.payment.capture(payment_id, int(round(float(amount) * 100)))
+    new_transaction = Transaction(
+        uuid=generate_uuid(),
+        amount=amount,
+        bank_account=current_user.bank_account,
+        customer_uuid=current_user.uuid,
+        ca_uuid=ca_name,
+        request_id=request_uuid,
+        date=get_ist_time(),
+        payment_id=payment_id,
+    )
+    db.session.add(new_transaction)
+    db.session.commit()
+    flash("Payment successful.", "success")
+    return redirect(url_for("view_requests"))
 
 
 if __name__ == "__main__":

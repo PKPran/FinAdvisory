@@ -186,9 +186,9 @@
                                 {% if request.status == "Submitted" %}
                                     NA
                                 {% elif request.status == "Accepted" %}
-                                    <a href="{{url_for('make_payment', amount=request.amount)}}" class="bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-lg">
-                                        <i class="fa-solid fa-cart-shopping mr-2"></i>Make Payment
-                                    </a>
+                                <a id="pay-button" data-amount="{{ request.amount }}" ca-name="{{request.ca_name}}" request-uuid="{{request.request.uuid}}" class="bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-lg">
+                                    <i class="fa-solid fa-cart-shopping mr-2"></i>Make Payment
+                                </a>
                                 {% elif request.status == "Rejected" %}
                                     NA
                                 {% elif request.status == "Cancelled by User" %}
@@ -204,4 +204,48 @@
             </tbody>
         </table>
 </div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.getElementById('pay-button').onclick = function(e){
+        e.preventDefault();
+        
+        var amount = e.target.getAttribute('data-amount');
+        var ca_name = e.target.getAttribute('ca-name');
+        var request_uuid = e.target.getAttribute('request-uuid');
+
+        var options = {
+            "key": "rzp_test_Q7dYN8I5O4YPOu",
+            "amount": amount * 100,
+            "currency": "INR",
+            "name": "Your Company Name",
+            "description": "Test Transaction",
+            "image": "/static/logo/logo.png",
+            "handler": function (response){
+                fetch("/charge", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        payment_id: response.razorpay_payment_id,
+                        amount: amount,
+                        ca_name: ca_name,
+                        request_uuid: request_uuid
+                    })
+                })
+                .then(response => response.text())
+            },
+            "prefill": {
+                "name": "Test Name",
+                "email": "test@example.com"
+            },
+            "theme": {
+                "color": "#F37254"
+            }
+        };
+
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+    }
+</script>
 {% endblock %}
