@@ -57,13 +57,14 @@ class Transaction(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(80), unique=True, nullable=False)
     created_at = Column(DateTime, nullable=False, default=get_ist_time())
-    updated_at = Column(DateTime, nullable=False, onupdate=get_ist_time())
+    updated_at = Column(DateTime, nullable=False, onupdate=get_ist_time(), default=get_ist_time())
     amount = Column(Float, nullable=False)
     bank_account = Column(String(80))
     customer_uuid = Column(Integer, ForeignKey("user.uuid"))
     ca_uuid = Column(String(80))
     request_id = Column(Integer, ForeignKey("request.uuid"))
     date = Column(DateTime, nullable=False)
+    payment_id = Column(String(80))
 
 
 class Request(db.Model):
