@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit
 from flask_login import (
     LoginManager,
     login_user,
@@ -7,17 +7,16 @@ from flask_login import (
     login_required,
     current_user,
 )
-from models import User, Transaction, Request, RequestLine, Message
+from models import User, Request, RequestLine, Message
 import os
 from database import db
 from sqlalchemy import inspect, or_
-from werkzeug.security import generate_password_hash
-import datetime
+from utils import finadv_gen_hash
 from utils import get_ist_time
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///finadv.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///finadvi.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 socketio = SocketIO(app)
 login_manager = LoginManager(app)
@@ -80,7 +79,7 @@ def register():
         elif existing_email:
             flash("Email already exists. Please use a different one.", "error")
             return redirect(url_for("register"))
-        password_hash = generate_password_hash(password)
+        password_hash = finadv_gen_hash(password)
         new_user = User(
             user_name=user_name,
             password_hash=password_hash,
@@ -127,7 +126,7 @@ def register_ca():
         elif existing_certificate:
             flash("Certificate already exists. Please use a different one.", "error")
             return redirect(url_for("register_ca"))
-        password_hash = generate_password_hash(password)
+        password_hash = finadv_gen_hash(password)
         new_ca = User(
             user_name=user_name,
             password_hash=password_hash,
@@ -323,9 +322,10 @@ def chat():
                 Message.recipient_id == chat_user.uuid,
             ),
         ).all()
-    chat_users = sorted(
-        chat_users, key=lambda x: x.messages[-1].timestamp, reverse=True
-    )
+    if chat_users[0].messages:
+        chat_users = sorted(
+            chat_users, key=lambda x: x.messages[-1].timestamp, reverse=True
+        )
     return render_template("chat.html", chat_users=chat_users)
 
 
@@ -356,6 +356,7 @@ def handle_message(data):
     db.session.commit()
     emit("message", data, broadcast=True)
 
+
 @app.route("/contact_us", methods=["GET", "POST"])
 def contact_us():
     if request.method == "POST":
@@ -372,6 +373,7 @@ def contact_us():
         flash("Message sent successfully.", "success")
         return redirect(url_for("index"))
     return render_template("contact_us.html")
+
 
 @app.route("/update_profile/<uuid:uuid>", methods=["GET", "POST"])
 @login_required
@@ -393,6 +395,7 @@ def update_profile(uuid):
         return redirect(url_for("view_profile", uuid=user.uuid))
     return render_template("update_profile.html", user=user)
 
+
 @app.route("/settings", methods=["GET"])
 @login_required
 def settings():
@@ -407,6 +410,15 @@ def settings():
         flash("Profile updated successfully.", "success")
         return redirect(url_for("index"))
     return render_template("settings.html")
+
+@app.route("/make_payment/<float:amount>", methods=["GET", "POST"])
+@login_required
+def make_payment(amount):
+    if request.method == "POST":
+        flash("Payment successful.", "success")
+        return redirect(url_for("view_requests"))
+    return render_template("make_payment.html", amount=amount)
+
 
 if __name__ == "__main__":
     socketio.run(app, port=5001, debug=True)
