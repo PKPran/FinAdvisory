@@ -172,8 +172,8 @@
                             </td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {% if request.status == "Accepted" %}
-                                    <button class="bg-yellow-500 hover:bg-yellow-200 text-white font-bold py-1 px-3 rounded-full">
-                                        <i class="fas fa-clock mr-2"></i> Pending
+                                    <button id="pay-button" data-amount="{{request.amount}}" data-ca-name="{{request.ca_name}}" data-request-uuid="{{request.request.uuid}}" class="bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-full">
+                                        <i class="fa-brands fa-apple-pay mr-2"></i> Pay Now
                                     </button>
                                 {% else%}
                                     NA
