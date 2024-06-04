@@ -20,12 +20,13 @@ def finadv_gen_hash(password):
     return generate_password_hash(password)
 
 def get_request_data(current_user):
-    from models import Request, User
+    from models import Request, User, Transaction
     request_data = []
     if current_user.is_ca:
         requests = Request.query.filter_by(ca_uuid=current_user.uuid).all()
         for request in requests:
             customer = User.query.filter_by(uuid=request.customer_uuid).first()
+            payment = Transaction.query.filter_by(request_id=request.uuid).first()
             request_data.append(
                 {
                     "request": request,
@@ -33,12 +34,14 @@ def get_request_data(current_user):
                     "amount": current_user.base_fee,
                     "status": request.status,
                     "email": customer.email,
+                    "is_paid": payment is not None,
                 }
             )
     else:
         requests = Request.query.filter_by(customer_uuid=current_user.uuid).all()
         for request in requests:
             ca = User.query.filter_by(uuid=request.ca_uuid).first()
+            payment = Transaction.query.filter_by(request_id=request.uuid).first()
             request_data.append(
                 {
                     "request": request,
@@ -46,6 +49,7 @@ def get_request_data(current_user):
                     "amount": ca.base_fee,
                     "status": request.status,
                     "email": ca.email,
+                    "is_paid": payment is not None,
                 }
             )
     return request_data

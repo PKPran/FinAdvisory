@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}View Payments - FinAdvisory{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">View Payments</h1>
+    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        Chartered Accountant
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Payment Date
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Reciept Account Number
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Request Identifier
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Payment Identifier
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Amount
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Payment Status
+                    </th>
+                </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+                <tr class="bg-white dark:bg-gray-800">
+                    <td class="px-6 py-4">{{ transaction.ca_uuid }}</td>
+                    <td class="px-6 py-4">{{ transaction.date }}</td>
+                    <td class="px-6 py-4">{{ transaction.bank_account }}</td>
+                    <td class="px-6 py-4">{{ transaction.request_id }}</td>
+                    <td class="px-6 py-4">{{ transaction.payment_id }}</td>
+                    <td class="px-6 py-4">{{ transaction.amount }}</td>
+                    <td class="px-6 py-4">
+                        <button class="bg-green-500 hover:bg-green-200 text-white font-bold py-1 px-3 rounded-full">
+                            <i class="fas fa-check-circle mr-2"></i> Paid
+                        </button> 
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
