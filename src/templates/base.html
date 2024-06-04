@@ -70,6 +70,7 @@
                                     <a href="{{ url_for('view_requests') }}" class="block px-4 py-2 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 whitespace-nowrap"><i class="fa-regular fa-eye mr-2"></i>View Bookings</a>
                                 {% else %}
                                     <a href="{{ url_for('view_requests') }}" class="block px-4 py-2 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 whitespace-nowrap"><i class="fa-regular fa-eye mr-2"></i>View Appointments</a>
+                                    <a href="{{ url_for('view_transactions')}}" class="block px-4 py-2 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 whitespace-nowrap"><i class="fa-solid fa-cart-shopping mr-2"></i>View Payments</a>
                                 {% endif %}
                                 <a href="{{ url_for('settings') }}" class="block px-4 py-2 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"><i class="fa-solid fa-gear mr-2"></i>Settings</a>
                                 <div class="border-t border-gray-200 dark:border-gray-700"></div>

@@ -428,6 +428,12 @@ def charge():
     flash("Payment successful.", "success")
     return redirect(url_for("view_requests"))
 
+@app.route("/view_transactions", methods=["GET"])
+@login_required
+def view_transactions():
+    transactions = Transaction.query.filter_by(customer_uuid=current_user.uuid).all()
+    return render_template("view_transactions.html", transactions=transactions)
+
 
 if __name__ == "__main__":
     socketio.run(app, port=5001, debug=True)
