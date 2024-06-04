@@ -73,80 +73,40 @@
                 </div>
             {% endif %}
         </div>
-
-        <script>
-            function toggleButton() {
-                var dropdown = document.getElementById("statusDropdown");
-                var button = document.getElementById("updateButton");
-                if (dropdown.value === "Accepted" || dropdown.value === "Rejected") {
-                    button.classList.remove("hidden");
-                } else {
-                    button.classList.add("hidden");
-                }
-            }
-        
-            function updateRequest(uuid) {
-                var dropdown = document.getElementById("statusDropdown");
-                var status = dropdown.value;
-                var url = "/update_request/" + uuid + "/" + status;
-                window.location.href = url;
-            }
-        </script>
         <div class="container mx-auto px-4 py-10">
                 <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">View Requests</h1>
                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        {% if current_user.is_ca %}
-                            <tr>
-                                <th scope="col" class="px-6 py-3">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">
+                                {% if current_user.is_ca %}
                                     Customer Name
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Description
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Base Fee / Session
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Status
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Payment Status
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Chat
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Action
-                                </th>
-                            </tr>
-                        {% else %}
-                            <tr>
-                                <th scope="col" class="px-6 py-3">
+                                {% else %}
                                     Chartered Accountant
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Description
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Base Fee / Session
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Status
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Payment Status
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Chat
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Action
-                                </th>
-                            </tr>
-                        {% endif %}
+                                {% endif %}
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                Description
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                Base Fee / Session
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                Status
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                Payment Status
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                Chat
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                Action
+                            </th>
+                        </tr>
                     </thead>
                     <tbody>
+                        {% if requests %}
                         {% for request in requests %}
                             {% if current_user.is_ca %}
                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
@@ -179,36 +139,44 @@
                                         {% endif %}
                                     </td>
                                     <td class="px-6 py-4 font-medium whitespace-nowrap dark:text-white">
-                                        {% if request.status == "Accepted" %}
-                                            <button class="bg-yellow-500 hover:bg-yellow-200 text-white font-bold py-1 px-3 rounded-full">
-                                                <i class="fas fa-clock mr-2"></i> Pending
-                                            </button>
+                                        {% if request.status == "Accepted"%}
+                                            {% if request.is_paid %}
+                                                <button class="bg-green-500 hover:bg-green-200 text-white font-bold py-1 px-3 rounded-full">
+                                                    <i class="fas fa-check-circle mr-2"></i> Paid
+                                                </button>
+                                            {% else %}
+                                                <button class="bg-yellow-500 hover:bg-yellow-200 text-white font-bold py-1 px-3 rounded-full">
+                                                    <i class="fas fa-clock mr-2"></i> Pending
+                                                </button>
+                                            {% endif %}
                                         {% else%}
-                                            NA
+                                            N/A
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if request.status == "Accepted" %}
-                                            <a href="{{url_for('chat')}}" class="bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-full">
+                                        {% if request.is_paid %}
+                                            <a href="{{url_for('chat')}}" class="whitespace-nowrap bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-full">
                                                 <i class="fa-regular fa-comments mr-2"></i> Chat Now
                                             </a>
                                         {% else %}
-                                            <a href="{{url_for('chat')}}" class="bg-gray-500 text-white font-bold py-1 px-3 rounded-full" disabled>
+                                            <a href="#" class="bg-gray-500 text-white font-bold py-1 px-3 rounded-full" disabled>
                                                 <i class="fa-regular fa-comments mr-2"></i> Chat Now
                                             </a>
                                         {% endif %}
-
                                     </td>                      
                                     <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                         {% if request.status == "Cancelled by User" %}
                                             <span class="text-red-500">Cancelled by User</span>
                                         {% else %}
                                             <div class="relative inline-block">
-                                                <select id="statusDropdown" name="status" class="block w-full py-2 pl-3 pr-10 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-gray-400 dark:focus:border-gray-400 sm:text-sm py-1 px-3 rounded-full" onchange="toggleButton()">
-                                                    <option value="Accepted">Accept</option>
-                                                    <option value="Rejected">Reject</option>
-                                                </select>
-                                                <button id="updateButton" class="hidden mt-2 ml-2 py-2 px-4 bg-blue-500 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" onclick="updateRequest('{{request.request.uuid}}')">Update</button>
+                                                <a href="{{url_for('update_request', uuid=request.request.uuid, status='Accepted')}}" 
+                                                    class="mr-2 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded-full">
+                                                        <i class="fas fa-check-circle mr-2"></i>Accept
+                                                </a>
+                                                <a href="{{url_for('update_request', uuid=request.request.uuid, status='Rejected')}}" 
+                                                    class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full">
+                                                    <i class="fas fa-times-circle mr-2"></i>  Reject
+                                                </a>
                                             </div>
                                         {% endif %}
                                     </td>
@@ -244,10 +212,16 @@
                                         {% endif %}
                                     </td>
                                     <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                        {% if request.status == "Accepted" %}
-                                            <button id="pay-button" data-amount="{{request.amount}}" data-ca-name="{{request.ca_name}}" data-request-uuid="{{request.request.uuid}}" class="bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-full">
-                                                <i class="fa-brands fa-apple-pay mr-2"></i> Pay Now
-                                            </button>
+                                        {% if request.status == "Accepted"%}
+                                            {% if request.is_paid %}
+                                                <button class="bg-green-500 hover:bg-green-200 text-white font-bold py-1 px-3 rounded-full">
+                                                    <i class="fas fa-check-circle mr-2"></i> Paid
+                                                </button>
+                                            {% else %}
+                                                <button id="pay-button" data-amount="{{request.amount}}" data-ca-name="{{request.ca_name}}" data-request-uuid="{{request.request.uuid}}" class="bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-full">
+                                                    <i class="fa-brands fa-apple-pay mr-2"></i> Pay Now
+                                                </button>
+                                            {% endif %}
                                         {% else%}
                                             <button id="pay-button" data-amount="{{request.amount}}" data-ca-name="{{request.ca_name}}" data-request-uuid="{{request.request.uuid}}" class="bg-gray-500 text-white font-bold py-1 px-3 rounded-full" disabled>
                                                 <i class="fa-brands fa-apple-pay mr-2"></i> Pay Now
@@ -255,7 +229,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if request.status == "Accepted" %}
+                                        {% if request.is_paid %}
                                             <a href="{{url_for('chat')}}" class="whitespace-nowrap bg-blue-500 hover:bg-blue-200 text-white font-bold py-1 px-3 rounded-full">
                                                 <i class="fa-regular fa-comments mr-2"></i> Chat Now
                                             </a>
@@ -264,7 +238,6 @@
                                                 <i class="fa-regular fa-comments mr-2"></i> Chat Now
                                             </a>
                                         {% endif %}
-
                                     </td>    
                                     <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                         <a href="{{url_for('cancel_request', uuid=request.request.uuid)}}" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 rounded-full"><i class="fa-solid fa-xmark mr-2"></i>Cancel</a>
@@ -272,6 +245,13 @@
                                 </tr>
                             {% endif %}
                         {% endfor %}
+                        {% else %}
+                            <tr class=" text-center bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" colspan="7">
+                                    No requests found.
+                                </td>
+                            </tr>
+                            {% endif %}
                     </tbody>
                 </table>
         </div>
@@ -281,8 +261,8 @@
                 e.preventDefault();
                 
                 var amount = e.target.getAttribute('data-amount');
-                var ca_name = e.target.getAttribute('ca-name');
-                var request_uuid = e.target.getAttribute('request-uuid');
+                var ca_name = e.target.getAttribute('data-ca-name');
+                var request_uuid = e.target.getAttribute('data-request-uuid');
         
                 var options = {
                     "key": "rzp_test_Q7dYN8I5O4YPOu",

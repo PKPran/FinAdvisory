@@ -183,12 +183,10 @@ def login():
 def find_ca():
     if request.method == "POST":
         name = request.form["name"]
-        print("Name:", name)
         ca_list = User.query.filter(
             or_(User.first_name.ilike(f"%{name}%"), User.last_name.ilike(f"%{name}%")),
             User.is_ca == True,
         ).all()
-        print("CA List:", ca_list)
         flash(f"Found {len(ca_list)} CAs.", "info")
         return render_template("find_ca.html", ca_list=ca_list)
     ca_list = User.query.filter(User.is_ca == True).all()
@@ -198,9 +196,7 @@ def find_ca():
 @app.route("/book_ca/<uuid:ca_uuid>", methods=["GET", "POST"])
 @login_required
 def book_ca(ca_uuid):
-    print("CA UUID:", ca_uuid)
     ca = User.query.filter_by(uuid=str(ca_uuid)).first()
-    print("CA:", ca)
     if request.method == "POST":
         description = request.form["description"]
         new_request_line = RequestLine(
