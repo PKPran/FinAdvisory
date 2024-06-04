@@ -122,7 +122,9 @@
                                         <i class="fa-regular fa-comments mr-2"></i> Chat Now
                                     </a>
                                 {% else %}
-                                    NA
+                                    <a href="{{url_for('chat')}}" class="bg-gray-500 text-white font-bold py-1 px-3 rounded-full" disabled>
+                                        <i class="fa-regular fa-comments mr-2"></i> Chat Now
+                                    </a>
                                 {% endif %}
 
                             </td>                      
@@ -176,7 +178,9 @@
                                         <i class="fa-brands fa-apple-pay mr-2"></i> Pay Now
                                     </button>
                                 {% else%}
-                                    NA
+                                    <button id="pay-button" data-amount="{{request.amount}}" data-ca-name="{{request.ca_name}}" data-request-uuid="{{request.request.uuid}}" class="bg-gray-500 text-white font-bold py-1 px-3 rounded-full" disabled>
+                                        <i class="fa-brands fa-apple-pay mr-2"></i> Pay Now
+                                    </button>
                                 {% endif %}
                             </td>
                             <td>
@@ -185,7 +189,9 @@
                                         <i class="fa-regular fa-comments mr-2"></i> Chat Now
                                     </a>
                                 {% else %}
-                                    NA
+                                    <a href="#" class="bg-gray-500 text-white font-bold py-1 px-3 rounded-full" disabled>
+                                        <i class="fa-regular fa-comments mr-2"></i> Chat Now
+                                    </a>
                                 {% endif %}
 
                             </td>    
