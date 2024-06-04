@@ -35,7 +35,9 @@ with app.app_context():
 @app.route("/")
 def index():
     ca_list = User.query.filter(User.is_ca == True).all()
-    request_data = get_request_data(current_user) if current_user.is_authenticated else []
+    request_data = (
+        get_request_data(current_user) if current_user.is_authenticated else []
+    )
     return render_template("index.html", ca_list=ca_list, requests=request_data)
 
 
