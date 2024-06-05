@@ -112,6 +112,15 @@
                     {% endif %}
                     " role="alert">
                     <div class="flex-1 text-sm font-medium">
+                        {% if category == 'success' %}
+                            <i class="fa-solid fa-check mr-2"></i>
+                        {% elif category == 'error' %}
+                            <i class="fa-solid fa-bug mr-2"></i>
+                        {% elif category == 'info' %}
+                            <i class="fa-solid fa-circle-info mr-2"></i>
+                        {% elif category == 'warning' %}
+                            <i class="fa-solid fa-triangle-exclamationm mr-2"></i>
+                        {% endif %}
                         {{ message }}
                     </div>
                     <button type="button" class="ml-4 rounded-md focus:outline-none focus:ring p-2 hover:bg-gray-200 dark:hover:bg-gray-700" onclick="dismissAlert('{{ loop.index }}')" aria-label="Close">
